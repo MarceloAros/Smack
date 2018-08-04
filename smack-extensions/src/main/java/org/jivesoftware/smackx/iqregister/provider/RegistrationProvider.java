@@ -16,10 +16,12 @@
  */
 package org.jivesoftware.smackx.iqregister.provider;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.DataFormatException;
 
 import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smack.packet.IQ;
@@ -28,9 +30,15 @@ import org.jivesoftware.smack.util.PacketParserUtils;
 
 import org.jivesoftware.smackx.iqregister.packet.Registration;
 
+import org.jivesoftware.smackx.xdata.FormField;
+import org.jivesoftware.smackx.xdata.packet.DataForm;
+import org.jivesoftware.smackx.xdata.provider.DataFormProvider;
 import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 public class RegistrationProvider extends IQProvider<Registration> {
+
+    XmlPullParser parserAux;
 
     @Override
     public Registration parse(XmlPullParser parser, int initialDepth)
@@ -38,6 +46,13 @@ public class RegistrationProvider extends IQProvider<Registration> {
         String instruction = null;
         Map<String, String> fields = new HashMap<>();
         List<ExtensionElement> packetExtensions = new LinkedList<>();
+        parserAux =  parser;
+        DataForm registrationForm = null;
+        FormField field;
+
+
+        //fields.putAll(getAttributesDataForms(parserAux));
+
         outerloop:
         while (true) {
             int eventType = parser.next();
@@ -60,9 +75,38 @@ public class RegistrationProvider extends IQProvider<Registration> {
                     }
                 }
                 // Otherwise, it must be a packet extension.
+                else if (parser.getNamespace().equals("jabber:x:data")) {
+                    registrationForm = new DataFormProvider().parse(parser);
+                    /*
+                    String name = parser.getName();
+                    String value = "XXXXXXX";
+                    String var = "";
+
+                    //Tag para saber en que parte del xml se esta
+                    if (parser.getName().equalsIgnoreCase("field"))
+                        System.out.println("### FIELD ###");
+
+                    if (parser.getAttributeCount() > 0){
+                        // Tag de if mas cantidad de atributos
+                        System.out.println("~CantAtrib: " + parser.getAttributeCount());
+                        for (int i=0 ; i< parser.getAttributeCount(); i++){
+                            System.out.println(parser.getAttributeName(i) + ":" + parser.getAttributeValue(i));
+                            if(parser.getAttributeName(i).equalsIgnoreCase("var"))
+                                var = parser.getAttributeValue(i);
+
+                            value = parser.getName();
+                        }
+
+                    }
+                    if (!var.isEmpty())
+                        fields.put(var, value);
+                    */
+                }
+
                 else {
                     PacketParserUtils.addExtensionElement(packetExtensions, parser);
                 }
+
             }
             else if (eventType == XmlPullParser.END_TAG) {
                 if (parser.getName().equals(IQ.QUERY_ELEMENT)) {
@@ -70,9 +114,17 @@ public class RegistrationProvider extends IQProvider<Registration> {
                 }
             }
         }
-        Registration registration = new Registration(instruction, fields);
+
+        Registration registration = null;
+        if (registrationForm != null)
+        {
+            registration = new Registration(instruction, fields, registrationForm);
+        } else
+        {
+            registration = new Registration(instruction, fields);
+
+        }
         registration.addExtensions(packetExtensions);
         return registration;
     }
-
 }

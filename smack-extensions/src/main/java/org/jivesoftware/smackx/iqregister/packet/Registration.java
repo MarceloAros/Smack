@@ -21,6 +21,7 @@ import java.util.Map;
 
 import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smack.packet.IQ;
+import org.jivesoftware.smackx.xdata.packet.DataForm;
 
 /**
  * Represents registration packets. An empty GET query will cause the server to return information
@@ -50,8 +51,10 @@ public class Registration extends IQ {
     public static final String ELEMENT = QUERY_ELEMENT;
     public static final String NAMESPACE = "jabber:iq:register";
 
-    private final String instructions;
-    private final Map<String, String> attributes;
+    private String instructions;
+    private Map<String, String> attributes;
+    private Map<String, String> attributesDataForm;
+    private DataForm objDataForms;
 
     public Registration() {
         this(null);
@@ -65,6 +68,13 @@ public class Registration extends IQ {
         super(ELEMENT, NAMESPACE);
         this.instructions = instructions;
         this.attributes = attributes;
+    }
+
+    public Registration(String instructions, Map<String, String> attributes, DataForm objDataForms){
+        super(ELEMENT, NAMESPACE);
+        this.instructions = null;
+        this.attributes = null;
+        this.objDataForms = objDataForms;
     }
 
     /**
@@ -87,6 +97,10 @@ public class Registration extends IQ {
         return attributes;
     }
 
+    public DataForm getDataFormAttributes(){
+        return objDataForms;
+    }
+
     @Override
     protected IQChildElementXmlStringBuilder getIQChildElementBuilder(IQChildElementXmlStringBuilder xml) {
         xml.rightAngleBracket();
@@ -97,6 +111,14 @@ public class Registration extends IQ {
                 xml.element(name, value);
             }
         }
+        if (objDataForms != null){
+            //System.out.println("->ObjDataForms en \"Registration.java\".");
+            xml.element(objDataForms);
+        }
+        //System.out.println("->Fuera del if en  \"Registration.java\".\nLa cadena XML es: \n" + xml.toString());
+
+
+
         return xml;
     }
 

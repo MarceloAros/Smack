@@ -39,6 +39,9 @@ import org.jivesoftware.smack.util.StringUtils;
 import org.jivesoftware.smackx.disco.ServiceDiscoveryManager;
 import org.jivesoftware.smackx.iqregister.packet.Registration;
 
+import org.jivesoftware.smackx.xdata.Form;
+import org.jivesoftware.smackx.xdata.FormField;
+import org.jivesoftware.smackx.xdata.packet.DataForm;
 import org.jxmpp.jid.parts.Localpart;
 
 /**
@@ -193,6 +196,18 @@ public final class AccountManager extends Manager {
         }
     }
 
+    public DataForm getDataFormAttributes() throws XMPPErrorException, NotConnectedException, InterruptedException, NoResponseException {
+        if (info == null) {
+            getRegistrationInfo();
+        }
+        DataForm registrationDataForm = info.getDataFormAttributes();
+        if (registrationDataForm != null){
+            return registrationDataForm;
+        } else {
+            return null;
+        }
+    }
+
     /**
      * Returns the value of a given account attribute or <tt>null</tt> if the account
      * attribute wasn't found.
@@ -254,6 +269,8 @@ public final class AccountManager extends Manager {
         createAccount(username, password, attributes);
     }
 
+
+
     /**
      * Creates a new account using the specified username, password and account attributes.
      * The attributes Map must contain only String name/value pairs and must also have values
@@ -287,6 +304,38 @@ public final class AccountManager extends Manager {
         reg.setTo(connection().getXMPPServiceDomain());
         createStanzaCollectorAndSend(reg).nextResultOrThrow();
     }
+
+    /**
+     * Create a new Account using the XEP-0004: DataForms, in the inside the @dataFormsRegistration
+     * goes each field with necesary data to the create the identity
+     * @param dataFormRegistration
+     */
+    public void createAccount(DataForm dataFormRegistration) throws NotConnectedException, InterruptedException, XMPPErrorException, NoResponseException {
+        if (!connection().isSecureConnection() && !allowSensitiveOperationOverInsecureConnection) {
+            throw new IllegalStateException("Creating account over insecure connection");
+        }
+
+        if(dataFormRegistration.getField("username").getValues().get(0) == null ){
+            throw new IllegalArgumentException("Username must not be null");
+        }
+        if(dataFormRegistration.getField("password").getValues().get(0) == null ){
+            throw new IllegalArgumentException("Password must not be null");
+        }
+        /*
+        System.out.println("##############################################\n################# Debug ######################\n##############################################");
+        for (FormField test :  dataFormRegistration.getFields()) {
+            System.out.println(test.getVariable() + ": " + test.getValues().get(0));
+        }
+        System.out.println("##############################################\n################# Debug ######################\n##############################################");
+        */
+
+        Registration reg = new Registration(null, null, dataFormRegistration);
+        reg.setType(IQ.Type.set);
+        reg.setTo(connection().getXMPPServiceDomain());
+        createStanzaCollectorAndSend(reg).nextResultOrThrow();
+    }
+
+
 
     /**
      * Changes the password of the currently logged-in account. This operation can only

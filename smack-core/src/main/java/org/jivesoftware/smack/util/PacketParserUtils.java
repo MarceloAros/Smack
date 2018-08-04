@@ -1048,7 +1048,7 @@ public class PacketParserUtils {
 
     public static void addExtensionElement(Collection<ExtensionElement> collection,
                     XmlPullParser parser) throws Exception {
-        addExtensionElement(collection, parser, parser.getName(), parser.getNamespace());
+                addExtensionElement(collection, parser, parser.getName(), parser.getNamespace());
     }
 
     public static void addExtensionElement(Collection<ExtensionElement> collection,

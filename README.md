@@ -1,3 +1,6 @@
+Modify by @MarceloAros
+Links to lib [Here](http://binarylamp.cl/xmpp/) 
+
 Smack
 =====
 

@@ -48,10 +48,6 @@ public class RegistrationProvider extends IQProvider<Registration> {
         List<ExtensionElement> packetExtensions = new LinkedList<>();
         parserAux =  parser;
         DataForm registrationForm = null;
-        FormField field;
-
-
-        //fields.putAll(getAttributesDataForms(parserAux));
 
         outerloop:
         while (true) {
@@ -119,10 +115,8 @@ public class RegistrationProvider extends IQProvider<Registration> {
         if (registrationForm != null)
         {
             registration = new Registration(instruction, fields, registrationForm);
-        } else
-        {
+        } else {
             registration = new Registration(instruction, fields);
-
         }
         registration.addExtensions(packetExtensions);
         return registration;
